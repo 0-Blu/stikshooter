@@ -8,7 +8,8 @@ let player = {
   radius: 20,
   speed: 5,
   angle: 0,
-  health: 100
+  health: 100,
+  id: null // Unique ID for this player
 };
 
 // Multiplayer state
@@ -35,11 +36,18 @@ canvas.addEventListener("click", () => {
   });
 });
 
-// WebSocket connection to Vercel serverless endpoint
+// WebSocket connection
 const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/api/server`);
+ws.onopen = () => {
+  console.log("Connected to server");
+  player.id = Date.now(); // Assign a unique ID on connection
+};
 ws.onmessage = (event) => {
   allPlayers = JSON.parse(event.data);
+  console.log("Players received:", allPlayers); // Debug log
 };
+ws.onerror = (error) => console.error("WebSocket error:", error);
+ws.onclose = () => console.log("WebSocket closed");
 
 function update() {
   // Movement
@@ -65,8 +73,8 @@ function update() {
   });
 
   // Send player data to server
-  if (ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ x: player.x, y: player.y, health: player.health }));
+  if (ws.readyState === WebSocket.OPEN && player.id) {
+    ws.send(JSON.stringify({ id: player.id, x: player.x, y: player.y, health: player.health }));
   }
 }
 
@@ -78,7 +86,7 @@ function draw() {
     const p = allPlayers[id];
     ctx.beginPath();
     ctx.arc(p.x, p.y, 20, 0, Math.PI * 2);
-    ctx.fillStyle = (p.x === player.x && p.y === player.y) ? "blue" : "red";
+    ctx.fillStyle = (id == player.id) ? "blue" : "red"; // Compare by ID
     ctx.fill();
     ctx.closePath();
 
