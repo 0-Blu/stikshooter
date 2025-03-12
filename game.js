@@ -9,19 +9,16 @@ let player = {
   speed: 5,
   angle: 0,
   health: 100,
-  id: null // Unique ID for this player
+  id: null
 };
 
-// Multiplayer state
 let allPlayers = {};
 let bullets = [];
 
-// Input handling
 let keys = {};
 window.addEventListener("keydown", (e) => keys[e.key] = true);
 window.addEventListener("keyup", (e) => keys[e.key] = false);
 
-// Mouse handling
 let mouse = { x: 0, y: 0 };
 canvas.addEventListener("mousemove", (e) => {
   mouse.x = e.clientX - canvas.offsetLeft;
@@ -36,11 +33,10 @@ canvas.addEventListener("click", () => {
   });
 });
 
-// WebSocket connection
 const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/server`);
 ws.onopen = () => {
   console.log("Connected to server");
-  player.id = Date.now().toString(); // Unique ID as string
+  player.id = Date.now().toString();
   ws.send(JSON.stringify({ id: player.id, x: player.x, y: player.y, health: player.health }));
 };
 ws.onmessage = (event) => {
@@ -51,20 +47,16 @@ ws.onerror = (error) => console.error("WebSocket error:", error);
 ws.onclose = () => console.log("WebSocket closed");
 
 function update() {
-  // Movement
   if (keys["w"]) player.y -= player.speed;
   if (keys["s"]) player.y += player.speed;
   if (keys["a"]) player.x -= player.speed;
   if (keys["d"]) player.x += player.speed;
 
-  // Keep player in bounds
   player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
   player.y = Math.max(player.radius, Math.min(canvas.height - player.radius, player.y));
 
-  // Update angle
   player.angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
 
-  // Update bullets
   bullets.forEach((bullet, index) => {
     bullet.x += Math.cos(bullet.angle) * bullet.speed;
     bullet.y += Math.sin(bullet.angle) * bullet.speed;
@@ -73,18 +65,15 @@ function update() {
     }
   });
 
-  // Send player data to server
   if (ws.readyState === WebSocket.OPEN && player.id) {
     ws.send(JSON.stringify({ id: player.id, x: player.x, y: player.y, health: player.health }));
   }
 }
 
 function draw() {
-  // Clear canvas with black background
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Draw all players
   for (let id in allPlayers) {
     const p = allPlayers[id];
     ctx.beginPath();
@@ -93,12 +82,10 @@ function draw() {
     ctx.fill();
     ctx.closePath();
 
-    // Draw health bar
     ctx.fillStyle = "green";
     ctx.fillRect(p.x - 20, p.y - 30, (p.health / 100) * 40, 5);
   }
 
-  // Draw bullets
   bullets.forEach(bullet => {
     ctx.beginPath();
     ctx.arc(bullet.x, bullet.y, 5, 0, Math.PI * 2);
@@ -107,7 +94,6 @@ function draw() {
     ctx.closePath();
   });
 
-  // Debug: Draw local player if not in allPlayers
   if (player.id && !allPlayers[player.id]) {
     ctx.beginPath();
     ctx.arc(player.x, player.y, 20, 0, Math.PI * 2);
