@@ -2,7 +2,6 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 const statusDiv = document.getElementById("status");
 
-// Player object
 let player = {
   x: 400,
   y: 300,
