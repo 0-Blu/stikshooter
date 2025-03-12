@@ -41,6 +41,8 @@ const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws
 ws.onopen = () => {
   console.log("Connected to server");
   player.id = Date.now(); // Assign a unique ID on connection
+  // Initial send to register player
+  ws.send(JSON.stringify({ id: player.id, x: player.x, y: player.y, health: player.health }));
 };
 ws.onmessage = (event) => {
   allPlayers = JSON.parse(event.data);
@@ -79,14 +81,16 @@ function update() {
 }
 
 function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // Clear canvas with black background
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // Draw all players
   for (let id in allPlayers) {
     const p = allPlayers[id];
     ctx.beginPath();
     ctx.arc(p.x, p.y, 20, 0, Math.PI * 2);
-    ctx.fillStyle = (id == player.id) ? "blue" : "red"; // Compare by ID
+    ctx.fillStyle = (id === player.id.toString()) ? "blue" : "red"; // Ensure ID is string
     ctx.fill();
     ctx.closePath();
 
@@ -99,10 +103,19 @@ function draw() {
   bullets.forEach(bullet => {
     ctx.beginPath();
     ctx.arc(bullet.x, bullet.y, 5, 0, Math.PI * 2);
-    ctx.fillStyle = "red";
+    ctx.fillStyle = "yellow"; // Changed to yellow for visibility on black
     ctx.fill();
     ctx.closePath();
   });
+
+  // Debug: Draw local player if not in allPlayers yet
+  if (!allPlayers[player.id]) {
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, 20, 0, Math.PI * 2);
+    ctx.fillStyle = "blue";
+    ctx.fill();
+    ctx.closePath();
+  }
 }
 
 function gameLoop() {
