@@ -1,0 +1,10 @@
+{
+  "name": "pvp-shooter",
+  "version": "1.0.0",
+  "dependencies": {
+    "ws": "^8.16.0"
+  },
+  "scripts": {
+    "dev": "vercel dev"
+  }
+}
