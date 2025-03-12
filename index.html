@@ -4,9 +4,17 @@
   <title>Simple PvP Shooter</title>
   <style>
     canvas { border: 1px solid black; background-color: black; }
+    #status { 
+      position: absolute; 
+      top: 10px; 
+      left: 10px; 
+      color: white; 
+      font-family: Arial, sans-serif; 
+    }
   </style>
 </head>
 <body>
+  <div id="status">Connecting to server...</div>
   <canvas id="gameCanvas" width="800" height="600"></canvas>
   <script src="game.js"></script>
 </body>
