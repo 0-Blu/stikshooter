@@ -37,16 +37,15 @@ canvas.addEventListener("click", () => {
 });
 
 // WebSocket connection
-const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/api/server`);
+const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/server`);
 ws.onopen = () => {
   console.log("Connected to server");
-  player.id = Date.now(); // Assign a unique ID on connection
-  // Initial send to register player
+  player.id = Date.now().toString(); // Unique ID as string
   ws.send(JSON.stringify({ id: player.id, x: player.x, y: player.y, health: player.health }));
 };
 ws.onmessage = (event) => {
   allPlayers = JSON.parse(event.data);
-  console.log("Players received:", allPlayers); // Debug log
+  console.log("Players received:", allPlayers);
 };
 ws.onerror = (error) => console.error("WebSocket error:", error);
 ws.onclose = () => console.log("WebSocket closed");
@@ -90,7 +89,7 @@ function draw() {
     const p = allPlayers[id];
     ctx.beginPath();
     ctx.arc(p.x, p.y, 20, 0, Math.PI * 2);
-    ctx.fillStyle = (id === player.id.toString()) ? "blue" : "red"; // Ensure ID is string
+    ctx.fillStyle = (id === player.id) ? "blue" : "red";
     ctx.fill();
     ctx.closePath();
 
@@ -103,13 +102,13 @@ function draw() {
   bullets.forEach(bullet => {
     ctx.beginPath();
     ctx.arc(bullet.x, bullet.y, 5, 0, Math.PI * 2);
-    ctx.fillStyle = "yellow"; // Changed to yellow for visibility on black
+    ctx.fillStyle = "yellow";
     ctx.fill();
     ctx.closePath();
   });
 
-  // Debug: Draw local player if not in allPlayers yet
-  if (!allPlayers[player.id]) {
+  // Debug: Draw local player if not in allPlayers
+  if (player.id && !allPlayers[player.id]) {
     ctx.beginPath();
     ctx.arc(player.x, player.y, 20, 0, Math.PI * 2);
     ctx.fillStyle = "blue";
