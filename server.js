@@ -1,17 +1,18 @@
 import { Server } from 'ws';
 
+let wss;
+let players = {};
+
 export default (req, res) => {
   if (!res.socket.server.wss) {
     console.log("Initializing WebSocket server...");
-    const wss = new Server({ server: res.socket.server });
+    wss = new Server({ server: res.socket.server });
     res.socket.server.wss = wss;
 
-    let players = {};
+    players = {}; // Reset on new instance (serverless limitation)
 
     wss.on('connection', (ws) => {
-      const id = Date.now().toString(); // Ensure ID is a string
-      players[id] = { x: 400, y: 300, health: 100 };
-      console.log(`Player ${id} connected`);
+      console.log("New WebSocket connection established");
 
       ws.on('message', (message) => {
         try {
@@ -22,7 +23,7 @@ export default (req, res) => {
               y: data.y,
               health: data.health
             };
-            console.log("Updated players:", JSON.stringify(players)); // Detailed log
+            console.log("Updated players:", JSON.stringify(players));
             wss.clients.forEach(client => {
               if (client.readyState === WebSocket.OPEN) {
                 client.send(JSON.stringify(players));
@@ -37,8 +38,7 @@ export default (req, res) => {
       });
 
       ws.on('close', () => {
-        delete players[id];
-        console.log(`Player ${id} disconnected`);
+        console.log("Client disconnected");
         wss.clients.forEach(client => {
           if (client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify(players));
@@ -53,7 +53,7 @@ export default (req, res) => {
       res.socket.server.wss.emit('connection', ws, req);
     });
   } else {
-    res.status(200).end();
+    res.status(200).end("Not a WebSocket request");
   }
 };
 
