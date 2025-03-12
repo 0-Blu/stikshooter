@@ -9,7 +9,7 @@ export default (req, res) => {
     let players = {};
 
     wss.on('connection', (ws) => {
-      const id = Date.now();
+      const id = Date.now().toString(); // Ensure ID is a string
       players[id] = { x: 400, y: 300, health: 100 };
       console.log(`Player ${id} connected`);
 
@@ -22,12 +22,14 @@ export default (req, res) => {
               y: data.y,
               health: data.health
             };
-            console.log("Updated players:", players); // Debug log
+            console.log("Updated players:", JSON.stringify(players)); // Detailed log
             wss.clients.forEach(client => {
               if (client.readyState === WebSocket.OPEN) {
                 client.send(JSON.stringify(players));
               }
             });
+          } else {
+            console.log("Received message without ID:", message);
           }
         } catch (e) {
           console.error("Error parsing message:", e);
